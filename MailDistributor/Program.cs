@@ -16,9 +16,10 @@ builder.Services.AddDbContext<PostgreDbContext>(option =>
     option.UseNpgsql(configuration.GetConnectionString("Postgre"));
 });
 
-AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 builder.Services.AddControllers();
 builder.Services.AddTransient<MailService>();
+
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var app = builder.Build();
 

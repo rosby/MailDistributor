@@ -12,7 +12,12 @@ namespace MailDistributor.Services
 			ServiceProvider = serviceProvider;
 		}
 
-		protected T GetContext<T>()
+        /// <summary>
+        /// Получить контекст базы данных
+        /// </summary>
+        /// <typeparam name="T">Тип контекста базы наследуемый от <see cref="DbContext"></typeparam>
+        /// <returns>Контекст базы данных наследуемый от <see cref="DbContext"></returns>
+        protected T GetContext<T>()
 			where T : DbContext
 		{
 			return ServiceProvider.GetRequiredService<T>();

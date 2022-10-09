@@ -12,6 +12,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MailDistributor.Services
 {
+    /// <summary>
+    /// Сервис для работы с почтой через SMTP протокол
+    /// </summary>
 	public class MailService : BaseService
     {
 		private SmtpSettings _smtpSettings;
@@ -21,6 +24,11 @@ namespace MailDistributor.Services
 			_smtpSettings = SmtpSettings.GetFromConfiguration(configuration);
 		}
 
+        /// <summary>
+        /// Отправить email сообщение
+        /// </summary>
+        /// <param name="model">Модель входящих данных</param>
+        /// <returns></returns>
 		public async Task SendAsync(MailPostRequestApiModel model)
 		{
 			var mailsForSend = model.Recipients.ToDictionary(recipient => new MailMessage(_smtpSettings.Login,
@@ -33,9 +41,14 @@ namespace MailDistributor.Services
 																				   model.Body));
 
             await SendMailAsync(mailsForSend);
-            await StoreResult(mailsForSend.Select(item => item.Value).ToList());
+            await StoreResultAsync(mailsForSend.Select(item => item.Value).ToList());
         }
 
+        /// <summary>
+        /// Получение истории отправленных email сообщений
+        /// </summary>
+        /// <param name="stoppingToken">Токен прерывания операции</param>
+        /// <returns></returns>
         public async IAsyncEnumerable<Mail> GetHistoryAsync([EnumeratorCancellation] CancellationToken stoppingToken)
         {
             await using var context = GetContext<PostgreDbContext>();
@@ -44,6 +57,11 @@ namespace MailDistributor.Services
                 yield return mail;
         }
 
+        /// <summary>
+        /// Отправить e-mail с помощью smtp сервера
+        /// </summary>
+        /// <param name="mails">Письма для отправки</param>
+        /// <returns></returns>
         private async Task SendMailAsync(Dictionary<MailMessage, Mail> mails)
         {
             using var smptClient = new SmtpClient();
@@ -66,7 +84,12 @@ namespace MailDistributor.Services
 
         }
 
-        private async Task StoreResult(IEnumerable<Mail> mails)
+        /// <summary>
+        /// Сохранение результата отправления письм 
+        /// </summary>
+        /// <param name="mails">Отправленные письма</param>
+        /// <returns></returns>
+        private async Task StoreResultAsync(IEnumerable<Mail> mails)
         {
             await using var context = GetContext<PostgreDbContext>();
 
