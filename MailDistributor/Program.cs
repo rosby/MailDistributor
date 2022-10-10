@@ -1,5 +1,6 @@
 ﻿using MailDistributor.Database;
 using MailDistributor.Services;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -18,12 +19,23 @@ builder.Services.AddDbContext<PostgreDbContext>(option =>
 
 builder.Services.AddControllers();
 builder.Services.AddTransient<MailService>();
+builder.Services.AddSwaggerGen();
+builder.Services.AddMvcCore();
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var app = builder.Build();
 
-app.MapControllers();
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "MailDistributor");
+});
 
+RewriteOptions redirections = new();
+redirections.AddRedirect("^$", "swagger");
+app.UseRewriter(redirections);
+
+app.MapControllers();
 app.Run();
 

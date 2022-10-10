@@ -38,9 +38,9 @@ namespace MailDistributor.Helpers
         /// </summary>
         /// <param name="configuration">Конфигурация проекта</param>
         /// <returns></returns>
-        public static string GetSmtpPort(this IConfiguration configuration)
+        public static int GetSmtpPort(this IConfiguration configuration)
         {
-            return configuration.GetRequiredSection("SmtpClient")["Port"];
+            return configuration.GetRequiredSection("SmtpClient").GetValue<int>("Port");
         }
 
         /// <summary>
@@ -48,19 +48,19 @@ namespace MailDistributor.Helpers
         /// </summary>
         /// <param name="configuration">Конфигурация проекта</param>
         /// <returns></returns>
-        public static string GetSmtpEnableSsl(this IConfiguration configuration)
+        public static bool GetSmtpEnableSsl(this IConfiguration configuration)
         {
-            return configuration.GetRequiredSection("SmtpClient")["EnableSsl"];
+            return configuration.GetRequiredSection("SmtpClient").GetValue<bool>("EnableSsl");
         }
 
         /// <summary>
         /// Получить значение длительности таймаута для отправки сообщений через smtp протокол
         /// </summary>
         /// <param name="configuration">Конфигурация проекта</param>
-        /// <returns></returns>
-        public static string GetSmtpTimeout(this IConfiguration configuration)
+        /// <returns>Длительность тайм-аута в миллисекундах</returns>
+        public static int GetSmtpTimeout(this IConfiguration configuration)
         {
-            return configuration.GetRequiredSection("SmtpClient")["Timeout"];
+            return configuration.GetRequiredSection("SmtpClient").GetValue<int>("Timeout");
         }
     }
 	

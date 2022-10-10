@@ -31,17 +31,46 @@ namespace MailDistributor.Services
         /// <returns></returns>
 		public async Task SendAsync(MailPostRequestApiModel model)
 		{
-			var mailsForSend = model.Recipients.ToDictionary(recipient => new MailMessage(_smtpSettings.Login,
-																						  recipient,
-																						  model.Subject,
-																						  model.Body),
-															 recipient => new Mail(_smtpSettings.Login,
-																				   recipient,
-																				   model.Subject,
-																				   model.Body));
-
+            ValidateModel(model);
+            var mailsForSend = PrepareData(model);
             await SendMailAsync(mailsForSend);
-            await StoreResultAsync(mailsForSend.Select(item => item.Value).ToList());
+            await StoreResultAsync(mailsForSend);
+        }
+
+
+
+        /// <summary>
+        /// Валидация входящей модели данных
+        /// </summary>
+        /// <param name="model">Модель входящих данных</param>
+        /// <exception cref="InvalidDataException"></exception>
+        private void ValidateModel(MailPostRequestApiModel model)
+        {
+            if (!model.Recipients.Any())
+                throw new InvalidDataException("Не указано ни одного получателя письма");
+
+            foreach (var recipient in model.Recipients)
+            {
+                if (!MailAddress.TryCreate(recipient, out var _))
+                    throw new InvalidDataException($"Неверный формат email [{recipient}]");
+            }
+        }
+
+        /// <summary>
+        /// Подготовка данных к дальнейшей обработки
+        /// </summary>
+        /// <param name="model">Входящяя модель данных</param>
+        /// <returns>Словарь, ключем которого является объект для отправки с помощью smtp, а значение объект базы данных для сохранения</returns>
+        private Dictionary<MailMessage, Mail> PrepareData(MailPostRequestApiModel model)
+        {
+            return model.Recipients.ToDictionary(recipient => new MailMessage(_smtpSettings.Login,
+                                                                                          recipient,
+                                                                                          model.Subject,
+                                                                                          model.Body),
+                                                 recipient => new Mail(_smtpSettings.Login,
+                                                                       recipient,
+                                                                       model.Subject,
+                                                                       model.Body));
         }
 
         /// <summary>
@@ -89,11 +118,11 @@ namespace MailDistributor.Services
         /// </summary>
         /// <param name="mails">Отправленные письма</param>
         /// <returns></returns>
-        private async Task StoreResultAsync(IEnumerable<Mail> mails)
+        private async Task StoreResultAsync(Dictionary<MailMessage, Mail> mails)
         {
             await using var context = GetContext<PostgreDbContext>();
 
-            context.AddRange(mails);
+            context.AddRange(mails.Select(item => item.Value).ToList());
             await context.SaveChangesAsync();
         }
     }
