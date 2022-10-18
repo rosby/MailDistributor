@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Mail;
-using MailDistributor.Services.Models;
+using MailDistributor.Options;
 
 namespace MailDistributor.Helpers
 {
@@ -12,7 +12,7 @@ namespace MailDistributor.Helpers
 		/// </summary>
 		/// <param name="smtpClient"></param>
 		/// <param name="smtpSettings">Настройки smtp-клиента</param>
-		public static void LoadSettings(this SmtpClient smtpClient, SmtpSettings smtpSettings)
+		public static void LoadSettings(this SmtpClient smtpClient, SmtpClientOption smtpSettings)
 		{
 			smtpClient.Host = smtpSettings.Server;
             smtpClient.Port = smtpSettings.Port;

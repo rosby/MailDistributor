@@ -18,6 +18,7 @@
     <None Remove="Helpers\" />
     <None Remove="Services\Models\" />
     <None Remove="Swashbuckle.AspNetCore" />
+    <None Remove="Options\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Database\" />
@@ -27,14 +28,15 @@
     <Folder Include="Database\Tables\" />
     <Folder Include="Helpers\" />
     <Folder Include="Services\Models\" />
+    <Folder Include="Options\" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.9">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.7" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.10" />
   </ItemGroup>
 </Project>

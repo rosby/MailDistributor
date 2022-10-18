@@ -4,25 +4,29 @@ using System.Net.Mail;
 using MailDistributor.Controllers.Models;
 using Microsoft.Extensions.Configuration;
 using MailDistributor.Helpers;
-using MailDistributor.Services.Models;
 using MailDistributor.Database.Tables;
 using MailDistributor.Database;
 using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using MailDistributor.Options;
 
 namespace MailDistributor.Services
 {
     /// <summary>
     /// Сервис для работы с почтой через SMTP протокол
     /// </summary>
-	public class MailService : BaseService
+	public class MailService
     {
-		private SmtpSettings _smtpSettings;
+		SmtpClientOption _smtpClientSettings;
+        PostgreDbContext _dbContext;
 
-		public MailService(IServiceProvider serviceProvider, IConfiguration configuration) : base(serviceProvider)
+
+		public MailService(PostgreDbContext dbContext, IOptions<SmtpClientOption> smtpClientSettings)
 		{
-			_smtpSettings = SmtpSettings.GetFromConfiguration(configuration);
-		}
+            _smtpClientSettings = smtpClientSettings.Value;
+            _dbContext = dbContext;
+        }
 
         /// <summary>
         /// Отправить email сообщение
@@ -63,11 +67,11 @@ namespace MailDistributor.Services
         /// <returns>Словарь, ключем которого является объект для отправки с помощью smtp, а значение объект базы данных для сохранения</returns>
         private Dictionary<MailMessage, Mail> PrepareData(MailPostRequestApiModel model)
         {
-            return model.Recipients.ToDictionary(recipient => new MailMessage(_smtpSettings.Login,
+            return model.Recipients.ToDictionary(recipient => new MailMessage(_smtpClientSettings.Login,
                                                                                           recipient,
                                                                                           model.Subject,
                                                                                           model.Body),
-                                                 recipient => new Mail(_smtpSettings.Login,
+                                                 recipient => new Mail(_smtpClientSettings.Login,
                                                                        recipient,
                                                                        model.Subject,
                                                                        model.Body));
@@ -80,9 +84,7 @@ namespace MailDistributor.Services
         /// <returns></returns>
         public async IAsyncEnumerable<Mail> GetHistoryAsync([EnumeratorCancellation] CancellationToken stoppingToken)
         {
-            await using var context = GetContext<PostgreDbContext>();
-
-            await foreach (var mail in context.Mails.AsNoTracking().AsAsyncEnumerable().WithCancellation(stoppingToken))
+            await foreach (var mail in _dbContext.Mails.AsNoTracking().AsAsyncEnumerable().WithCancellation(stoppingToken))
                 yield return mail;
         }
 
@@ -94,7 +96,7 @@ namespace MailDistributor.Services
         private async Task SendMailAsync(Dictionary<MailMessage, Mail> mails)
         {
             using var smptClient = new SmtpClient();
-            smptClient.LoadSettings(_smtpSettings);
+            smptClient.LoadSettings(_smtpClientSettings);
 
             foreach (KeyValuePair<MailMessage, Mail> mail in mails)
             {

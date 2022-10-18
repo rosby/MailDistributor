@@ -14,7 +14,7 @@ namespace MailDistributor.Controllers.Models
 		/// Тело письма
 		/// </summary>
 		[Required]
-		public string? Body { get; set; }
+		public string Body { get; set; }
 
 		/// <summary>
 		/// Список адресов получаетей письма
